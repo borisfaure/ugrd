@@ -1,0 +1,20 @@
+# Unlocks a LUKS root over ssh from the initramfs, for a headless machine.
+# A net provider must be loaded; this module only declares needs = "net".
+
+modules = [
+  "ugrd.net.dhcpcd",  # or "ugrd.net.static"
+  "ugrd.net.dropbear",
+]
+
+# Public keys allowed to unlock. Required; a missing or empty file fails the build.
+dropbear_authorized_keys = "/etc/dropbear/authorized_keys"
+
+# Defaults to 22, which collides with the booted system's sshd in known_hosts.
+dropbear_port = 2222
+
+# Extra dropbear arguments, inserted before -c
+#dropbear_args = [ "-v" ]
+
+# Without a persistent host key, -R generates one per boot and the fingerprint changes
+# every time. Including one puts an unencrypted private key in the image on /boot.
+#dependencies = [ "/etc/dropbear/dropbear_ed25519_host_key" ]

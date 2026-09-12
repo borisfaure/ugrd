@@ -1,0 +1,40 @@
+needs = "net"  # A net provider such as ugrd.net.dhcpcd or ugrd.net.static must be loaded
+
+binaries = [ "dropbear" ]
+
+paths = [ "etc/dropbear", "root/.ssh" ]
+
+mount_devpts = true  # dropbear needs ptys for the session
+
+dropbear_port = 22
+
+# custom_init is deliberately not masked, so the console keeps its own prompt.
+[imports.config_processing]
+"ugrd.net.dropbear" = [ "_process_dropbear_authorized_keys" ]
+
+[imports.build_tasks]
+"ugrd.net.dropbear" = [ "add_dropbear_authorized_keys" ]
+
+[imports.build_final]
+"ugrd.net.dropbear" = [ "dropbear_finalize" ]
+
+# nudge_crypt_prompt is in no init hook, so it must be force-included here to exist.
+# stop_dropbear must not be listed: it is imported into init_final, and a function
+# cannot be run in both places.
+[imports.functions]
+"ugrd.net.dropbear" = [ "nudge_crypt_prompt" ]
+
+[imports.init_pre]
+"ugrd.net.dropbear" = [ "start_dropbear" ]
+
+[imports.init_final]
+"ugrd.net.dropbear" = [ "stop_dropbear" ]
+
+# The daemon needs the network first; the unloaded provider is filtered out.
+[import_order.after]
+"start_dropbear" = [ "init_dhcpcd", "init_net" ]
+
+[custom_parameters]
+dropbear_authorized_keys = "Path"  # Path to the authorized_keys file to allow logins from
+dropbear_port = "int"  # Port for the dropbear server to listen on
+dropbear_args = "NoDupFlatList"  # Extra arguments to pass to the dropbear server

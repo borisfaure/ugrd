@@ -485,6 +485,31 @@ If enabled, this module will attempt to use `dhcpcd` to configure the primary ne
 
 * `dhcpcd_stop` (true) Whether or not to stop dhcpcd before switching to the root filesystem.
 
+#### ugrd.net.dropbear
+
+If enabled, this module starts `dropbear` in the initramfs, so a LUKS root can be unlocked over ssh.
+
+> A net provider such as `ugrd.net.dhcpcd` or `ugrd.net.static` must be loaded with it.
+
+dropbear runs as a background daemon, so the console keeps its own passphrase prompt and the
+volume can be unlocked from either side. Once a session unlocks it, the console prompt is
+interrupted so the boot continues.
+
+* `dropbear_authorized_keys` - The path of the authorized_keys file to allow logins from.
+* `dropbear_port` (22) The port the dropbear server listens on.
+* `dropbear_args` - Extra arguments to pass to the dropbear server.
+
+> `dropbear_authorized_keys` is required, and a missing or empty file fails the build, as public keys are the only way to log in.
+
+Host keys are generated at boot unless one is included, which changes the fingerprint on every
+boot. A persistent key can be included as a dependency:
+
+```
+dependencies = [ "/etc/dropbear/dropbear_ed25519_host_key" ]
+```
+
+> Anything included in the initramfs, such as `authorized_keys` or a host key, can be read by anyone who can read `/boot`.
+
 ### masks
 
 To mask an import used by another module, the mask parameter can be used:
